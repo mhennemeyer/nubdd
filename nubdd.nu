@@ -1,6 +1,44 @@
-(load "matchers.nu")
+;; NuBDD is a lightweight BDD Framework for 
+;; the Nu Programming Language
 
-(puts "---")
+;; Matchersystem
+(class Matcher is NSObject
+  (ivar (id) name
+        (id) block
+        (id) args
+        (id) expectation
+        (id) negativeMessage
+        (id) positiveMessage)
+  (ivar-accessors)
+  
+  (imethod (id) message is
+    (if (eq (self expectation) 'should) (self positiveMessage)
+      (else (self negativeMessage))))
+  
+  (imethod (id) matches:(id)receiver is
+    ((self block) receiver self (self args))))
+    
+(macro-1 def_matcher (name block)
+  `(function ,name (*args) 
+    (set __matcher (Matcher new))
+    (__matcher setName: ,name)
+    (__matcher setBlock: ,block)
+    (__matcher setArgs: *args)
+    (__matcher)))
+;; END Matchersystem
+
+
+;; Matcherdefinitions
+(def_matcher eql
+  (do (receiver matcher args)
+    (matcher setPositiveMessage:"Expected #{receiver} to eql #{(args 0)}")
+    (matcher setNegativeMessage:"Expected #{receiver} not to eql #{(args 0)}")
+    (eq receiver (args 0))))
+;; END Matcherdefinitions
+
+
+;; Helpers
+
 
 ; (function untree (obj collSym)
 ;   (function _untree (obj collSym) 
@@ -8,6 +46,28 @@
 ;   (set list ())
 ;   )
 
+;; END Helpers
+
+
+;; Extensions
+(class NSObject
+  (imethod (id) should:(id)matcher is
+    (matcher setExpectation:'should)
+    (set result (matcher matches:self))
+    (if result
+      ($current_running_example pass:matcher)
+      (else ($current_running_example fail:matcher))))
+      
+  (imethod (id) should_not:(id)matcher is
+    (matcher setExpectation:'should_not)
+    (set result (matcher matches:self))
+    (if result
+      ($current_running_example fail:matcher)
+      (else ($current_running_example pass:matcher)))))
+;; END Extensions      
+
+
+;; Fundamental Classes
 (class Suite is NSObject
   (ivar (id) exampleGroups)
   (ivar-accessors)
@@ -17,27 +77,27 @@
       (self setExampleGroups:(NSMutableArray new)))
     ((self exampleGroups) addObject:exampleGroup))
     
-  (imethod (id) run is
+  (imethod (id) run_current is
     (set groups (self exampleGroups)) ;untree all groups here
     (groups each: (do (eg)
       (set $current_example_group eg)
       (eg expand)
       (eg run)))))
       
-
+      
 (class Example is NSObject
-  (ivar (id) descriptivestring
+  (ivar (id) descriptiveStringOrExpectation
         (id) body)
   (ivar-accessors)
   
   (imethod (id) pass:(id)matcher is
     ;; ToDo Report
-    (puts "-#{(self descriptivestring)}"))
+    (puts "  * #{(self descriptiveStringOrExpectation)}"))
     
   (imethod (id) fail:(id)matcher is
     ;; ToDo Report
-    (puts "F -#{(self descriptivestring)}: FAILED")))
- 
+    (puts "  F  #{(self descriptiveStringOrExpectation)}: FAILED #{(matcher message)}")))
+
     
 (class ExampleGroup is NSObject
   (ivar (id) sut
@@ -80,45 +140,38 @@
     ((self body)))
     
   (imethod (id) run is
-    (puts ((self sut) description))
+    (puts (self sut))
     ((self examples) eachWithIndex:(do (e i)
       (set $current_running_example e)
-      (set list (append (self before) 
-                        (e body) 
+      (set list (append (self before)
+                        (if (eq "should:" ((e descriptiveStringOrExpectation) description))
+                          (e setDescriptiveStringOrExpectation:(car (e body)))
+                          (parse "(#{(self sut)} should:#{(car (e body))})" )
+                          (else (e body)))
                         (self after)))
       (while list
         (eval (car list))
         (set list (cdr list)))))))
+;; END Fundamental Classes
 
 
-
-
-(class NSObject
-  (imethod (id) should:(id)matcher is
-    (set result (matcher matches:self))
-    (if result
-      ($current_running_example pass:matcher)
-      (else ($current_running_example fail:matcher))))
-      
-  (imethod (id) should_not:(id)matcher is
-    (set result (matcher matches:self))
-    (if result
-      ($current_running_example fail:matcher)
-      (else ($current_running_example pass:matcher)))))
-      
-      
-(macro-1 it (descriptivestring *body)
+;; DSL    
+(macro-1 it (descriptiveStringOrExpectation *body)
   `(progn
     (if $current_example ($current_example release))
     (set $current_example (Example new))
-    ($current_example setDescriptivestring:,descriptivestring)
+    ($current_example setDescriptiveStringOrExpectation:(quote ,descriptiveStringOrExpectation))
     ($current_example setBody:(quote ,*body))
     ($current_example_group addExample:$current_example)))
-    
+
+(macro-1 sut (*body)
+  `(progn
+    (puts "Hello")))
+        
 (macro-1 describe (sut *body)
   `(progn
     (set __group (ExampleGroup new))
-    (__group setSut:,sut)
+    (__group setSut:(quote ,sut))
     (__group setBody:(do () ,@*body))
     (if $current_example_group
       ($current_example_group addExampleGroup:__group))
@@ -132,47 +185,4 @@
   
 (macro-1 after (*body)
   `($current_example_group addAfter:(quote ,*body)))
-
-(describe "He"
-  (before
-    (set a "Hello"))
-  
-  (after
-    (set a nil))
-    
-  (it "says Hello"
-    (a should:(eql "Hello")))
-    
-  (describe "without 'l's"
-    (before
-      (a replaceOccurrencesOfString:"l" 
-                         withString:"" 
-                            options:nil 
-                              range:(list 0 (a length))))
-      
-    (it "says Heo"
-      (a should:(eql "Heo"))))
-
-  (it "won't say World"
-    (a should_not:(eql "World"))))
-
-
-
-($suite run)
-
-
-; (describe A
-;   (before all
-;     (set a "all")
-;     (s))
-;   (before suite
-;     (set s "suite"))
-;   (before each
-;     (set e "each")
-;     (a)
-;     (s))
-;   (it "solves a lot of problems"
-;     (a)
-;     (e)
-;     (s))
-(puts "---")
+;; END DSL
