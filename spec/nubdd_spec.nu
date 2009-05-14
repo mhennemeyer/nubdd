@@ -21,7 +21,11 @@
                               range:(list 0 (a length))))
       
     (it "says Heo"
-      (a should:(eql "Heo"))))
+      (a should:(eql "Heo")))
+      
+    (describe "One more Time"
+      (it "says Heo"
+        (a should:(eql "Heo")))))
 
   (it "won't say World"
     (a should_not:(eql "World"))))
