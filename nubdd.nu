@@ -66,7 +66,7 @@
     ((self block) receiver self (self args))))
 
 ; Define simple matchers with defmatcher   
-(macro-1 def_matcher (name block)
+(macro-1 matcher (name block)
   `(function ,name (*args) 
     (set __matcher (Matcher new)) ;todo mm
     (__matcher setName: ,name)
@@ -80,7 +80,7 @@
 
 ; eql
 ; (1 should:(eql 1))
-(def_matcher eql
+(matcher eql
   (do (receiver matcher args)
     (matcher setPositiveMessage:"Expected #{(args 0)}, but was #{receiver}")
     (matcher setNegativeMessage:"Expected not #{(args 0)}")
@@ -111,7 +111,7 @@
 ; raiseError
 ; Examples
 ;   ((proc undefinedSymbol) should:raiseError "NuUndefinedSymbol")
-(def_matcher raiseError
+(matcher raiseError
   (do (receiver matcher args)
     (set e ())
     (try

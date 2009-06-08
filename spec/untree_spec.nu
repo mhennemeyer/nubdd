@@ -52,4 +52,4 @@
 ((eg1 groups) each: (do (eg) 
   (3 times: (do (i) (eg addGroup:(EG new))))))
 
-(puts (untree (array eg1)))
+(puts (untree (array eg1)))
