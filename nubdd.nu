@@ -65,7 +65,7 @@
   (imethod (id) matches:(id) receiver is
     ((self block) receiver self (self args))))
 
-; Define simple matchers with defmatcher   
+; Define simple matchers with matcher   
 (macro-1 matcher (name block)
   `(function ,name (*args) 
     (set __matcher (Matcher new)) ;todo mm

@@ -4,7 +4,7 @@
 (describe "Change Matcher"
   (describe (proc (a addObject:2))
     (before 
-      (set a (array)))
+	  (set a (array)))
     (it should:(change (a count))))
     
   (describe (proc (s replaceOccurrencesOfString:"l" 
