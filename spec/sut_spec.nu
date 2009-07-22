@@ -18,4 +18,6 @@
     (before
       (set x 2))
     (it should:(eql 3))))
+    
+    
 ($suite run_current)

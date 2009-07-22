@@ -22,9 +22,9 @@
               ((groups map:iter) list)))))
   (flatten (arr map: (do (e) (iter e)))))
   
-;; END Helper Functions
+; END Helper Functions
 
-;; Helper Classes
+; Helper Classes
 
 (class Proc is NSObject
   (ivar (id) body)
@@ -34,10 +34,10 @@
     (eval (self body))))
 
 
-(macro-1 proc (*body)
-  `(progn
+(macro-0 proc
+  (progn
     (set __p (Proc new)) ;todo mm
-    (__p setBody:(quote (progn ,@*body)))
+    (__p setBody: (append '(progn (unquote (car margs))) (cdr margs)))
     __p))
 
 ;; END Helper Classes
@@ -65,18 +65,18 @@
   (imethod (id) matches:(id) receiver is
     ((self block) receiver self (self args))))
 
-; Define simple matchers with matcher   
-(macro-1 matcher (name block)
-  `(function ,name (*args) 
+;Define simple matchers with matcher   
+(macro-0 matcher 
+  (function (unquote (car margs)) (*args) 
     (set __matcher (Matcher new)) ;todo mm
-    (__matcher setName: ,name)
-    (__matcher setBlock: ,block)
+    (__matcher setName: (unquote (car margs)))
+    (__matcher setBlock: (unquote (car (cdr margs))))
     (__matcher setArgs: *args)
     (__matcher)))
-;; END Matchersystem
+; END Matchersystem
 
 
-;; Matcherdefinitions
+; Matcherdefinitions
 
 ; eql
 ; (1 should:(eql 1))
@@ -91,8 +91,8 @@
 ; beeing evaluated.
 ; Examples:
 ;  ((proc (a addObject:1)) should:(change (a count)))
-(macro-1 change (*args)
-  `(progn
+(macro-0 change
+  (progn
     (set __block 
       (do (receiver matcher args)
         (set subject (args 0))
@@ -102,12 +102,13 @@
         (matcher setPositiveMessage:"#{(cdr action)} didn't change #{subject}.")
         (matcher setNegativeMessage:"#{(cdr action)} changed #{subject} unexpectedly.")
         (not (eq before after))))
-    (set __m (Matcher new)) ;todo mm
+    (set __m (Matcher new))
     (__m setName: change)
     (__m setBlock: __block)
-    (__m setArgs: (quote ,*args))
+    (__m setArgs: '(unquote margs))
     __m))
   
+
 ; raiseError
 ; Examples
 ;   ((proc undefinedSymbol) should:raiseError "NuUndefinedSymbol")
@@ -141,7 +142,7 @@
     (if result
       ($current_running_example fail:matcher)
       (else ($current_running_example pass:matcher)))))
-;; END Extensions      
+; END Extensions      
 
 
 ;; Fundamental Classes
@@ -241,7 +242,7 @@
         (self setAfter:(append (self after) body)))))
     
   (imethod (id) expand is
-    ((self body))
+    (eval (self body))
     ((self exampleGroups) each: (do (eg)
       (set $current_example_group eg)
       (eg expand))))
@@ -251,44 +252,43 @@
       (puts (self descriptionList)) ; Report
       ((self examples) each:(do (e)
         (set $current_running_example e)
-        (set __list (list (self before)
+        (set __list (list 'progn (self before)
                           (if (eq "should:" ((e descriptiveStringOrExpectation) description))
                             (e setDescriptiveStringOrExpectation:(cdr (e body)))
                             (parse "(#{(self currentSut)} should:#{(cdr (e body))})" )
                             (else (e body)))
                           (self after)))
-        (eval `(progn ,@__list)) )))))
-;; END Fundamental Classes
+        (eval __list) )))))
+; END Fundamental Classes
 
 
-;; DSL    
-(macro-1 it (descriptiveStringOrExpectation *body)
-  `(progn
-    (if $current_example ($current_example release))
-    (set $current_example (Example new));todo mm
-    ($current_example setDescriptiveStringOrExpectation:(quote ,descriptiveStringOrExpectation))
-    ($current_example setBody:(quote (progn ,@*body)))
+;;  DSL    
+
+(macro-0 it
+  (progn
+    (set $current_example (Example new))
+    ($current_example setDescriptiveStringOrExpectation:'(unquote (car margs)))
+    ($current_example setBody:(append '(progn (unquote  (car (cdr margs))))  (cdr (cdr margs))))
     ($current_example_group addExample:$current_example)))
 
-(macro-1 sut (*body)
-  `(progn
-    (set __body (quote ,*body))
-    (eval (parse "((eval (self sut)) #{(car __body)}#{(cdr __body)})"))))
-        
-(macro-1 describe (sut *body)
-  `(progn
-    (set __group (ExampleGroup new));todo mm
-    (__group setSut:(quote ,sut))
-    (__group setBody:(do () ,@*body))
+(macro-0 sut
+    (eval (parse "((eval (self sut)) #{(car margs)}#{(cdr margs)})")))
+
+(macro-0 describe
+  (progn
+    (set __group (ExampleGroup new))
+    (__group setSut:'(unquote (car margs)))
+    (set __body (append '(progn (unquote (car (cdr margs)))) (cdr (cdr margs))))
+    (__group setBody:__body)
     (unless $suite
       (set $suite (Suite new)))
     (if $current_example_group
       ($current_example_group addExampleGroup:__group)
       (else ($suite addExampleGroup:__group)))))
 
-(macro-1 before (*body)
-  `($current_example_group addBefore:(quote (progn ,@*body))))
+(macro-0 before
+  ($current_example_group addBefore:(append '(progn (unquote  (car margs)))  (cdr margs))))
   
-(macro-1 after (*body)
-  `($current_example_group addAfter:(quote (progn ,@*body))))
+(macro-0 after
+  ($current_example_group addAfter:(append '(progn (unquote  (car margs)))  (cdr margs))))
 ;; END DSL
