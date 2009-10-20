@@ -9,8 +9,9 @@ It is heavily inspired by [RSpec](http://rspec.info).
 
 ## Installation
 
-For now:   
-  Just Copy the nubdd.nu file to an appropriate location inside your project.
+For now: Clone the nubdd project and load the nubdd.nu file:
+
+* mkdir ~/Resources && cd ~/Resources && git clone git://github.com/mhennemeyer/nubdd.git
   
 
 ## Usage
@@ -19,13 +20,13 @@ Say there is a project _myProject_ and the source code to test lives in `myProje
 
 * Create a "spec"-Folder inside your project: myProject/spec
 * Create a `spec_helper.nu` file in myProject/spec.
-* Load the code that you want to test. In `spec_helper.nu`: `(load "../lib/myProject.nu")`
+* Load the code that you want to test and nubdd. In `spec_helper.nu`: `(load "../lib/myProject.nu")` and `(load "~/Resources/nubdd.nu")`
 * Create a spec file: `myProject/spec/myProject_spec.nu`
 * Load the `spec_helper.nu` file in any spec file at first.
 * If you want to run the test suite with the plain Nu Interpreter, 
   you have to add `($suite run_current)` as the last statement in each of your spec files.
   If you are using TextMate, you can run all tests in a file 
-  by hitting Cmd-R and you will be shown a result window.
+  by hitting Cmd-R and you will be shown a results window.
 
 
 ## Features:
