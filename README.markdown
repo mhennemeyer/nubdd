@@ -9,19 +9,19 @@ It is heavily inspired by [RSpec](http://rspec.info).
 
 ## Installation
 
-For now: Clone the nubdd project and load the nubdd.nu file:
+**For now**: Clone the nubdd project and load the nubdd.nu file:
 
 * mkdir ~/Resources && cd ~/Resources && git clone git://github.com/mhennemeyer/nubdd.git
   
 
 ## Usage
 
-Say there is a project _myProject_ and the source code to test lives in `myProject/lib/myProject.nu`.
+Say there is a project _myProject_ and the source code to test lives in `~/myProject/lib/myProject.nu`.
 
-* Create a "spec"-Folder inside your project: myProject/spec
-* Create a `spec_helper.nu` file in myProject/spec.
+* Create a "spec"-Folder inside your project: ~/myProject/spec
+* Create a `spec_helper.nu` file in ~/myProject/spec.
 * Load the code that you want to test and nubdd. In `spec_helper.nu`: `(load "../lib/myProject.nu")` and `(load "~/Resources/nubdd.nu")`
-* Create a spec file: `myProject/spec/myProject_spec.nu`
+* Create a spec file: `~/myProject/spec/myProject_spec.nu`
 * Load the `spec_helper.nu` file in any spec file at first.
 * If you want to run the test suite with the plain Nu Interpreter, 
   you have to add `($suite run_current)` as the last statement in each of your spec files.
