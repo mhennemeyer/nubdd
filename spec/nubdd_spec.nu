@@ -11,7 +11,7 @@
     (a should:(eql "Hello")))
     
   (it "knows 1 + 1"
-    ((+ 1 1) should:((eql 2))))
+    ((+ 1 1) should:(eql 2)))
     
   (describe "without 'l's"
     (before
@@ -29,5 +29,7 @@
 
   (it "won't say World"
     (a should_not:(eql "World"))))
+    
+
 
 ($suite run_current)

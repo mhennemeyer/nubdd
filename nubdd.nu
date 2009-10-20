@@ -114,11 +114,11 @@
 ;   ((proc undefinedSymbol) should:raiseError "NuUndefinedSymbol")
 (matcher raiseError
   (do (receiver matcher args)
-    (set e ())
+    (set e nil)
     (try
       (receiver evalBody)
       (catch (e) (set __blew e)))
-    (matcher setPositiveMessage:"Expected #{(args 0)} to raise an Error")
+    (matcher setPositiveMessage:"Expected #{(receiver body)} to raise an Error #{(args 0)}, but was #{ (or (e name) 'none' )}")
     (matcher setNegativeMessage:"#{(receiver body)} blew up: #{(e name)}")
     (if (args 0)
       (eq (e name) (args 0))
@@ -249,7 +249,8 @@
     
   (imethod (id) run is
     (if (self examples) 
-      (puts (self descriptionList)) ; Report
+      ; TODO Report
+      (puts (self descriptionList)) 
       ((self examples) each:(do (e)
         (set $current_running_example e)
         (set __list (list 'progn (self before)
